@@ -60,6 +60,11 @@ endclass : ahb_slave_driver
 				if(req.HRESP == ERROR)
 					ahb_vif.slv_drv_cb.HRDATA <= '0;
 			end
+		else 
+		begin
+			ahb_vif.slv_drv_cb.HRESP <= OKAY;
+			ahb_vif.slv_drv_cb.HRDATA <= '0;
+		end
 	end
 	
  endtask : drive
