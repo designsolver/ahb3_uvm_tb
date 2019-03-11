@@ -43,27 +43,30 @@ task ahb_master_driver::run_phase(uvm_phase phase);
 endtask : run_phase
 
 task ahb_master_driver::drive();
-	while(!ahb_vif.HRESETn) 
+	int j;
+	do
 		@(ahb_vif.mst_drv_cb);
+	while(!ahb_vif.HRESETn);
 	void'(req.add_busy_cycles());
-	//req.print();
-	@(ahb_vif.mst_drv_cb);
 	ahb_vif.mst_drv_cb.HWRITE <= req.HWRITE;
 	ahb_vif.mst_drv_cb.HSIZE <= req.HSIZE;
 	ahb_vif.mst_drv_cb.HBURST <= req.HBURST;
-	foreach(req.HADDR[i])
+	foreach(req.HTRANS[i])
 	begin
-		foreach(req.HTRANS[j])
+		ahb_vif.mst_drv_cb.HTRANS <= req.HTRANS[i];
+		if(req.HTRANS[i] != BUSY)
 		begin
-			while(!ahb_vif.mst_drv_cb.HREADY)
-				@(ahb_vif.mst_drv_cb);
-			if(req.HTRANS[j] != BUSY)
-			begin
-				ahb_vif.mst_drv_cb.HADDR <= req.HADDR[i];
-				ahb_vif.mst_drv_cb.HWDATA <= req.HWDATA[i];
-				
-			end
-			ahb_vif.mst_drv_cb.HTRANS <= req.HTRANS[j];
+			ahb_vif.mst_drv_cb.HADDR <= req.HADDR[j];
+			ahb_vif.mst_drv_cb.HWDATA <= req.HWDATA[j];
+			j++;
 		end
+		else
+		begin
+			ahb_vif.mst_drv_cb.HADDR <= req.HADDR[j];
+			ahb_vif.mst_drv_cb.HWDATA <= req.HWDATA[j];
+		end
+		do
+			@(ahb_vif.mst_drv_cb);
+		while(!ahb_vif.mst_drv_cb.HREADY);
 	end
 endtask : drive
